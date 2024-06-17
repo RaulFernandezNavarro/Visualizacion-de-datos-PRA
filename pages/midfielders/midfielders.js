@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Load the CSV data
     d3.csv("../../resources/data/merged_df.csv").then(function(csvData) {
-        data = csvData.filter(d => (d.player_positions === "RB" || d.player_positions === "LB")).sort((a, b) => d3.descending(+a.Min, +b.Min));
+        data = csvData.filter(d => d.player_positions === "CM").sort((a, b) => d3.descending(+a.Min, +b.Min));
 
         // Add a unique id to each data point
         data.forEach((d, i) => d.id = i);

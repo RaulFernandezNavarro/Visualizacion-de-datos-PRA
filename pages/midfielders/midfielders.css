@@ -32,7 +32,7 @@ body {
 }
 
 .overlay h1 {
-    font-size: 16em;
+    font-size: 10em;
     font-weight: 700;
     margin: 0;
     transition: all 0.5s ease;
