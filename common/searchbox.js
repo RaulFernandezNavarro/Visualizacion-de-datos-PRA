@@ -1,4 +1,4 @@
-export function initSearchBox(data, updateVisualization) {
+function initSearchBox(data, updateVisualization) {
     const playerSearchInput = document.getElementById('player-search');
     const searchResultsContainer = document.getElementById('search-results');
     const selectedPlayerContainer = document.getElementById('selected-player');
@@ -39,3 +39,5 @@ export function initSearchBox(data, updateVisualization) {
         }
     });
 }
+
+export { initSearchBox };

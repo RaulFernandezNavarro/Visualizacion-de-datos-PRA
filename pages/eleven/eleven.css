@@ -11,6 +11,7 @@ header {
     text-align: center;
     padding: 10px 0;
     background-color: #1f1f1f; /* Darker background for the header */
+    z-index: 0;
 }
 
 footer {

@@ -1,5 +1,6 @@
 // Function to display player profile
 function displayPlayerProfile(player, allPlayersData) {
+    console.log("Displaying player profile: ", player);
     const currentYear = new Date().getFullYear();
     const age = player.Born ? currentYear - player.Born : "N/A";
     const nation = player.nationality_name || "N/A";
