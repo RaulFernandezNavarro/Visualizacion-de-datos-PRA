@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Load the CSV data
     let data;
-    d3.csv("merged_df.csv").then(function(csvData) {
+    d3.csv("../../resources/data/merged_df.csv").then(function(csvData) {
         data = csvData.filter(d => d.player_positions === "CB").sort((a, b) => d3.descending(+a.Min, +b.Min));
 
         // Generate matrix data
@@ -117,7 +117,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .data(matrixData.filter(d => d.player))
             .enter()
             .append("image")
-            .attr("xlink:href", d => d.player.player_face_url || "no-pic.png")
+            .attr("xlink:href", d => d.player.player_face_url || "../../resources/img/no-pic.png")
             .attr("x", d => d.col * matrixCellSize + (matrixCellSize / 2 - matrixCellSize / 2.5))
             .attr("y", d => d.row * matrixCellSize + (matrixCellSize / 2 - matrixCellSize / 2.5))
             .attr("width", matrixCellSize / 1.25)
@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("stroke-width", 2);
 
         node.append("image")
-            .attr("xlink:href", d => d.player_face_url || "no-pic.png")
+            .attr("xlink:href", d => d.player_face_url || "../../resources/img/no-pic.png")
             .attr("x", d => -d.radius)
             .attr("y", d => -d.radius)
             .attr("width", d => d.radius * 2)
@@ -266,7 +266,7 @@ document.addEventListener("DOMContentLoaded", function() {
             callback(url);
         };
         img.onerror = function() {
-            callback("no-pic.png");
+            callback("../../resources/img/no-pic.png");
         };
         img.src = url;
     }

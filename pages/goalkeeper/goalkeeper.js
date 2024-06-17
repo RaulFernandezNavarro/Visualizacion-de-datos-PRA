@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function() {
         .attr("height", height);
 
     // Load the CSV data
-    d3.csv("merged_df.csv").then(function(data) {
+    d3.csv("../../resources/data/merged_df.csv").then(function(data) {
 
         data = data.filter(d => d.Pos === "GK");
         const leagues = Array.from(new Set(data.map(d => d.league_name)));
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("stroke-width", 2);
 
         node.append("image")
-            .attr("xlink:href", d => d.player_face_url || "no-pic.png") // Use fallback image if URL is missing
+            .attr("xlink:href", d => d.player_face_url || "../../resources/img/no-pic.png") // Use fallback image if URL is missing
             .attr("x", d => -d.radius)
             .attr("y", d => -d.radius)
             .attr("width", d => d.radius * 2)
