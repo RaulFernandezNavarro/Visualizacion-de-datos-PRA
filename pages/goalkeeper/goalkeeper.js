@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 .on("end", dragEnded))
             .on("click", (event, d) => {
                 event.stopPropagation(); // Prevent the event from bubbling up
-                displayPlayerProfile(d); // Call the displayPlayerProfile function
+                displayPlayerProfile(d, data);
                 document.getElementById('player-info').classList.add('show'); // Show the panel
             }); // Pass event and data
 

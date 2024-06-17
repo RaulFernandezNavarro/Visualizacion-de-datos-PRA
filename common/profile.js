@@ -1,5 +1,5 @@
 // Function to display player profile
-function displayPlayerProfile(player) {
+function displayPlayerProfile(player, allPlayersData) {
     const currentYear = new Date().getFullYear();
     const age = player.Born ? currentYear - player.Born : "N/A";
     const nation = player.nationality_name || "N/A";
@@ -125,6 +125,9 @@ function displayPlayerProfile(player) {
     // Create radar chart
     const radarChartFields = ['SoT%', 'PasTotCmp%', 'TklDri%', 'ToSuc%', 'AerWon%'];
     createRadarChart(player, radarChartFields);
+
+    const availableStats = ['Min', 'Goals', 'Assists', 'MP', 'CrdY', 'CrdR'];
+    createDropdownAndChart(player, allPlayersData, availableStats);
 }
 
 // Function to create radar chart
@@ -263,4 +266,107 @@ function wrap(text, width) {
             }
         }
     });
+}
+
+function updateBarChart(playersData, currentPlayer, selectedStat) {
+    // Sort players based on the selected stat
+    const sortedPlayers = playersData.sort((a, b) => a[selectedStat] - b[selectedStat]);
+
+    // Find the value of the current player in the sorted list
+    const currentPlayerValue = currentPlayer[selectedStat];
+
+    // Debugging: Output the sorted list and the current player's value
+    console.log("Sorted Players based on " + selectedStat + ":", sortedPlayers.map(p => p.long_name + ": " + p[selectedStat]));
+    console.log("Current Player Value:", currentPlayerValue);
+
+    // Create histogram data
+    const histogramData = sortedPlayers.map(player => player[selectedStat]);
+
+    // Clear previous chart
+    d3.select('#bar-chart').select("svg").remove();
+    const svg = d3.select('#bar-chart').append('svg')
+        .attr('width', '100%')
+        .attr('height', 300)
+        .attr('viewBox', `0 0 600 300`)
+        .attr('preserveAspectRatio', 'xMinYMin meet');
+
+    const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+    const width = 600 - margin.left - margin.right;
+    const height = 300 - margin.top - margin.bottom;
+
+    const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+    // Define x and y scales
+    const x = d3.scaleLinear()
+        .domain([0, d3.max(histogramData)])  // Ensure the x domain covers the full range
+        .nice()  // Adds some padding to the domain
+        .range([0, width]);
+
+    const histogram = d3.histogram()
+        .value(d => d)
+        .domain(x.domain())
+        .thresholds(x.ticks(20));  // Use 20 bins for the histogram
+
+    const bins = histogram(histogramData);
+
+    const y = d3.scaleLinear()
+        .domain([0, d3.max(bins, d => d.length)])  // Use bins to set the y domain
+        .nice()  // Adds some padding to the domain
+        .range([height, 0]);
+
+    // Draw bars for histogram
+    g.selectAll('.bar')
+        .data(bins)
+        .enter().append('rect')
+        .attr('class', 'bar')
+        .attr('x', d => x(d.x0))
+        .attr('y', d => y(d.length))
+        .attr('width', d => Math.max(0, x(d.x1) - x(d.x0) - 1))
+        .attr('height', d => height - y(d.length))
+        .attr('fill', 'grey');
+
+    // Highlight the current player's bar
+    bins.forEach(bin => {
+        if (currentPlayerValue >= bin.x0 && currentPlayerValue < bin.x1) {
+            g.append('rect')
+                .attr('x', x(bin.x0))
+                .attr('y', y(bin.length))
+                .attr('width', Math.max(0, x(bin.x1) - x(bin.x0) - 1))
+                .attr('height', height - y(bin.length))
+                .attr('fill', 'lightblue');
+        }
+    });
+
+    // Add x-axis and y-axis
+    g.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(x).tickFormat(d3.format('d'))); // Format ticks as integers
+
+    g.append('g')
+        .call(d3.axisLeft(y));
+}
+
+// Function to create dropdown and initialize chart
+function createDropdownAndChart(player, playersData, availableStats) {
+    const dropdown = document.createElement('select');
+    dropdown.id = 'stats-dropdown';
+    availableStats.forEach(stat => {
+        const option = document.createElement('option');
+        option.value = stat;
+        option.text = stat;
+        dropdown.appendChild(option);
+    });
+
+    const barChartContainer = document.createElement('div');
+    barChartContainer.id = 'bar-chart';
+
+    document.getElementById('player-info').appendChild(dropdown);
+    document.getElementById('player-info').appendChild(barChartContainer);
+
+    dropdown.addEventListener('change', () => {
+        updateBarChart(playersData, player, dropdown.value);
+    });
+
+    // Initialize chart with default stat
+    updateBarChart(playersData, player, 'Min');
 }

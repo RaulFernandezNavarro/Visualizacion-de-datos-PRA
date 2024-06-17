@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`)
+            .attr("transform", `translate(${margin.left},${margin.top})`);
     }
 
     function createHistogramSvg(width, height) {
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Load the CSV data
     d3.csv("../../resources/data/merged_df.csv").then(function(csvData) {
-        data = csvData.filter(d => d.player_positions === "CB").sort((a, b) => d3.descending(+a.Min, +b.Min));
+        data = csvData.filter(d => (d.player_positions === "LB" || d.player_positions === "RB")).sort((a, b) => d3.descending(+a.Min, +b.Min));
 
         // Add a unique id to each data point
         data.forEach((d, i) => d.id = i);
@@ -242,12 +242,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const nodeEnter = node.enter().append("g")
             .attr("class", "node")
-            .attr("transform", d => `translate(${x(d[xColumn])},${y(d[yColumn])})`)
-            .on("click", (event, d) => {
-                event.stopPropagation(); // Prevent the event from bubbling up
-                displayPlayerProfile(d, data);
-                document.getElementById('player-info').classList.add('show'); // Show the panel
-            });
+            .attr("transform", d => `translate(${x(d[xColumn])},${y(d[yColumn])})`);
 
         nodeEnter.append("circle")
             .attr("r", 0)
