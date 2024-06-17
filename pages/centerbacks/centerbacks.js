@@ -31,17 +31,6 @@ document.addEventListener("DOMContentLoaded", function() {
     populateDropdown("y-axis-select", allowedColumns, defaultY);
     populateDropdown("size-select", allowedColumns, defaultSize);
 
-    function createMatrixSvg(width, height) {
-        return d3.select("#matrix")
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .style("display", "block")
-            .style("margin", "0 auto")
-            .append("g")
-            .attr("transform", `translate(${(width - matrixWidth) / 2},0)`);
-    }
-
     function createBubbleSvg(width, height) {
         return d3.select("#bubble-chart")
             .append("svg")
@@ -55,10 +44,8 @@ document.addEventListener("DOMContentLoaded", function() {
         updateDimensions();
 
         d3.select("#bubble-chart").select("svg").remove();
-        d3.select("#matrix").select("svg").remove();
 
         // Redraw everything with new dimensions
-        createMatrixSvg(bubbleWidth, matrixHeight);
         createBubbleChart(data, defaultX, defaultY, defaultSize);
 
         // Adjust hero section
@@ -78,65 +65,10 @@ document.addEventListener("DOMContentLoaded", function() {
     updateDimensions();
     adjustHeroSection();
 
-    // Matrix dimensions and settings
-    const matrixRows = 4;
-    const matrixCols = 15;
-    const matrixCellSize = 100; // Increased the cell size for more spacing
-    const matrixWidth = matrixCols * matrixCellSize;
-    const matrixHeight = matrixRows * matrixCellSize;
-
-    // Append the svg object to the body of the page for the matrix
-    const matrixSvg = createMatrixSvg(bubbleWidth, matrixHeight);
-
     // Load the CSV data
     let data;
     d3.csv("../../resources/data/merged_df.csv").then(function(csvData) {
         data = csvData.filter(d => d.player_positions === "CB").sort((a, b) => d3.descending(+a.Min, +b.Min));
-
-        // Generate matrix data
-        const matrixData = [];
-        for (let row = 0; row < matrixRows; row++) {
-            for (let col = 0; col < matrixCols; col++) {
-                const player = data.shift();
-                matrixData.push({ row, col, player });
-            }
-        }
-
-        // Create circles for the matrix
-        matrixSvg.selectAll("circle")
-            .data(matrixData)
-            .enter()
-            .append("circle")
-            .attr("cx", d => d.col * matrixCellSize + matrixCellSize / 2)
-            .attr("cy", d => d.row * matrixCellSize + matrixCellSize / 2)
-            .attr("r", matrixCellSize / 2.5) // Circle radius
-            .attr("fill", "#1a1a1a"); // Slightly lighter gray color
-
-        // Add player images to circles
-        matrixSvg.selectAll("image")
-            .data(matrixData.filter(d => d.player))
-            .enter()
-            .append("image")
-            .attr("xlink:href", d => d.player.player_face_url || "../../resources/img/no-pic.png")
-            .attr("x", d => d.col * matrixCellSize + (matrixCellSize / 2 - matrixCellSize / 2.5))
-            .attr("y", d => d.row * matrixCellSize + (matrixCellSize / 2 - matrixCellSize / 2.5))
-            .attr("width", matrixCellSize / 1.25)
-            .attr("height", matrixCellSize / 1.25)
-            .attr("clip-path", "circle(50%)")
-            .on("click", function(event, d) {
-                displayPlayerProfile(d.player); // Call the displayPlayerProfile function
-                document.getElementById('player-info').classList.add('show'); // Show the panel
-                event.stopPropagation();
-            });
-
-        // Validate image URLs and use fallback if broken
-        matrixSvg.selectAll("image").each(function(d) {
-            const img = d3.select(this);
-            const url = img.attr("xlink:href");
-            validateImageUrl(url, (src) => {
-                img.attr("xlink:href", src);
-            });
-        });
 
         // Create bubble chart
         createBubbleChart(data, defaultX, defaultY, defaultSize);
