@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualización de la Alineación Ideal 11</title>
+    <link rel="stylesheet" href="./eleven.css">
+</head>
+<body>
+    <header>
+        <h1>Visualización de la Alineación Ideal 11</h1>
+        <p>Selecciona filtros para encontrar a los mejores jugadores para cada posición en el campo.</p>
+    </header>
+    <div class="container">
+        <div class="sidebar-left">
+            <h2>Filtros y Ordenadores</h2>
+            <input type="text" id="player-search" placeholder="Buscar nombre de jugador">
+            <div id="search-results"></div>
+            <div id="selected-player"></div>
+            <div id="league-filters-label">Ligas</div>
+            <div id="league-filters">
+                <!-- League buttons will be dynamically added here -->
+            </div>
+            <div id="sorters-label">Ordenar por</div>
+            <div id="sorters">
+                <!-- Sorter buttons will be dynamically added here -->
+            </div>
+        </div>
+        <div class="main-content">
+            <div id="chart">
+                <img id="pitch-image" src="../../resources/img/football_field_1.png" alt="Campo de fútbol">
+                <svg class="overlay"></svg>
+            </div>
+        </div>
+        <div class="sidebar-right">
+            <div class="player-info-header">
+                <h2>Información del Jugador</h2>
+            </div>
+            <div id="player-info">
+                <p>Selecciona un jugador para ver los detalles aquí.</p>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2024 Visualización de la Alineación Ideal 11</p>
+    </footer>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="../../common/filters.js"></script>
+    <script src="../../common/profile.js"></script>
+    <script src="./eleven.js"></script>
+</body>
+</html>

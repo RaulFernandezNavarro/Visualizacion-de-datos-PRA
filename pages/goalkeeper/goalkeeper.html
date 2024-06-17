@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Porteros</title>
+    <link rel="stylesheet" href="goalkeeper.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div id="menu" class="menu">
+        <button id="menu-close-btn" class="menu-close-btn">&times;</button>
+        <ul class="menu-list">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="goalkeeper.html">Porteros</a></li>
+            <li><a href="centerbacks.html">Centrales</a></li>
+            <li><a href="fullbacks.html">Laterales</a></li>
+            <li><a href="midfielders.html">Mediocentros</a></li>
+            <li><a href="wingers.html">Extremos</a></li>
+            <li><a href="strikers.html">Delanteros</a></li>
+            <li><a href="eleven.html">El 11 ideal</a></li>
+        </ul>
+        <p class="menu-footer">Raúl Fernández Navarro - 2024</p>
+    </div>
+    <button id="menu-btn" class="menu-btn">&#9776;</button>
+    <div class="hero-section">
+        <img src="buffon.jpg" alt="Gianluigi Buffon besando el trofeo de la Copa del Mundo" class="hero-image">
+        <div class="overlay">
+            <h1>Porteros</h1>
+        </div>
+    </div>
+    <div class="content">
+        <h1>Minutos totales jugados<h1></h1>
+        <div id="legend"></div>
+        <div id="bubble-chart"></div>
+        <div id="player-info">
+            <button class="close-btn">Close</button>
+            <div id="profile-content"></div>
+        </div>
+    </div>
+    <script src="goalkeeper.js"></script>
+    <script src="profile.js"></script>
+    <script src="menu.js"></script>
+</body>
+</html>
