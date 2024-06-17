@@ -318,3 +318,65 @@ footer {
     font-size: 15px; /* Smaller font size */
     color: #f1f1f1;
 }
+
+/* Menu Styles */
+.menu {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    left: 0;
+    background-color: #1f1f1f;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.menu a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #fff;
+    display: block;
+    transition: 0.3s;
+}
+
+.menu a:hover {
+    color: #f1f1f1;
+}
+
+.menu .menu-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 36px;
+    background: none;
+    border: none;
+    color: white;
+}
+
+.menu-btn {
+    font-size: 30px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: white;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 3000;
+}
+
+.menu-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.menu-footer {
+    position: absolute;
+    bottom: 70px;
+    left: 20px;
+    font-size: 15px; /* Smaller font size */
+    color: #f1f1f1;
+}
