@@ -49,6 +49,16 @@
         <input type="text" id="player-search" placeholder="Buscar nombre de jugador">
         <div id="search-results"></div>
         <div id="selected-player"></div>
+        <div id="legend" class="legend">
+            <div class="legend-item">
+                <div class="legend-color grey"></div>
+                <span>Todos los jugadores</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color green"></div>
+                <span>Jugador seleccionado</span>
+            </div>
+        </div>        
         <div id="visualization-container">
             <div id="histogram-container">
                 <div id="histogram-controls" class="select-container">
@@ -59,15 +69,19 @@
             <div id="heatmap-container">
                 <div id="heatmap-controls" class="select-container">
                     <select id="heatmap-select" class="dropdown"></select>
+                    <p id="heatmap-text">(por partido)</p>
                 </div>
                 <div id="field-image">
                     <img src="../../resources/img/black-football-field.png" alt="Football Field">
                     <div id="field-sections">
-                        <div class="field-section section-left"></div>
-                        <div class="field-section section-mid"></div>
-                        <div class="field-section section-right"></div>
+                        <div class="field-section section-left section-grey"></div>
+                        <div class="field-section section-mid section-grey"></div>
+                        <div class="field-section section-right section-grey"></div>
+                        <div class="field-section section-left-player"></div>
+                        <div class="field-section section-mid-player"></div>
+                        <div class="field-section section-right-player"></div>
                     </div>
-                </div>
+                </div>                
             </div>
         </div>
     </div>

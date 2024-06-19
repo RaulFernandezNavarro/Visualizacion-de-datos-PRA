@@ -6,11 +6,13 @@ document.addEventListener("DOMContentLoaded", function() {
     const defaultSize = "Min";
     const defaultHistogram = "PasTotCmp%";
     const allowedHeatmapColumns = {
-        "Touches": ["TouDef3rd", "TouMid3rd", "TouAtt3rd"],
-        "Passes": ["PasDef3rd", "PasMid3rd", "PasAtt3rd"]
+        "Toques de balon": ["TouDef3rd", "TouMid3rd", "TouAtt3rd"],
+        "Entradas": ["TklDef3rd", "TklMid3rd", "TklAtt3rd"],
+        "Pases completados": ["PasShoCmp", "PasMedCmp", "PasLonCmp"],
+
     }; // Columns allowed for heatmap and corresponding field thirds
 
-    const defaultHeatmap = "Touches";
+    const defaultHeatmap = "Toques de balon";
 
     const margin = { top: 50, right: 30, bottom: 70, left: 60 };
     let bubbleWidth, bubbleHeight, histogramWidth, histogramHeight;
@@ -120,7 +122,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Create bubble chart
         createBubbleChart(data, currentX, currentY, currentSize);
         createHistogram(data, currentHistogram, activePlayer);
-        updateHeatmap(currentHeatmap);
+        updateHeatmap(currentHeatmap, data);
         initializeSearchBox(data);
 
         // Update bubble chart on dropdown change
@@ -148,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Update heatmap on dropdown change
         d3.select("#heatmap-select").on("change", function() {
             currentHeatmap = d3.select("#heatmap-select").property("value");
-            updateHeatmap(currentHeatmap);
+            updateHeatmap(currentHeatmap, data, activePlayer);
         });
     });
 
@@ -191,7 +193,8 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("transform", d => `translate(${d.xPos},${d.yPos})`)
             .on("click", (event, d) => {
                 event.stopPropagation();
-                displayPlayerProfile(d, data); // Use the displayPlayerProfile function from profile.js
+                // Display profile
+                displayPlayerProfile(d, data);
                 document.getElementById('player-info').classList.add('show');
             });
 
@@ -400,7 +403,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             .attr('y', y(bin.length))
                             .attr('width', Math.max(0, x(bin.x1) - x(bin.x0) - 1))
                             .attr('height', histogramHeight - y(bin.length))
-                            .attr('fill', 'lightblue');
+                            .attr('fill', rgb(5, 146, 18));
                     }
                 });
             });
@@ -466,15 +469,19 @@ document.addEventListener("DOMContentLoaded", function() {
                             .attr('y', y(bin.length))
                             .attr('width', Math.max(0, x(bin.x1) - x(bin.x0) - 1))
                             .attr('height', histogramHeight - y(bin.length))
-                            .attr('fill', 'lightblue');
+                            .attr('fill', 'rgb(5, 146, 18)');
                     }
                 });
             });
         }
     }
 
-    function updateHeatmap(heatmapStat) {
+    function updateHeatmap(heatmapStat, data, selectedPlayer = null) {
         const stats = allowedHeatmapColumns[heatmapStat];
+        if (!stats) {
+            console.error("Invalid heatmapStat:", heatmapStat);
+            return;
+        }
         const leftStat = stats[0];
         const midStat = stats[1];
         const rightStat = stats[2];
@@ -483,29 +490,62 @@ document.addEventListener("DOMContentLoaded", function() {
         const midSection = document.querySelector(".section-mid");
         const rightSection = document.querySelector(".section-right");
     
+        const leftSectionPlayer = document.querySelector(".section-left-player");
+        const midSectionPlayer = document.querySelector(".section-mid-player");
+        const rightSectionPlayer = document.querySelector(".section-right-player");
+    
         const leftValue = d3.mean(data, d => +d[leftStat]);
         const midValue = d3.mean(data, d => +d[midStat]);
         const rightValue = d3.mean(data, d => +d[rightStat]);
     
+        if (leftValue === undefined || midValue === undefined || rightValue === undefined) {
+            console.error("One or more values are undefined:", { leftValue, midValue, rightValue });
+            return;
+        }
+    
         const maxValue = Math.max(leftValue, midValue, rightValue);
     
-        const colorScale = d3.scaleSequential(d3.interpolateBlues)
-            .domain([0, maxValue]);
+        leftSection.textContent = `${leftValue.toFixed(2)}`;
+        midSection.textContent = `${midValue.toFixed(2)}`;
+        rightSection.textContent = `${rightValue.toFixed(2)}`;
     
-        leftSection.textContent = `${leftValue.toFixed(2)}%`;
-        leftSection.style.backgroundColor = `rgba(0, 0, 255, ${leftValue / maxValue})`;
+        leftSection.style.backgroundColor = `rgba(128, 128, 128, ${leftValue / maxValue * 0.7})`;
+        midSection.style.backgroundColor = `rgba(128, 128, 128, ${midValue / maxValue * 0.7})`;
+        rightSection.style.backgroundColor = `rgba(128, 128, 128, ${rightValue / maxValue * 0.7})`;
     
-        midSection.textContent = `${midValue.toFixed(2)}%`;
-        midSection.style.backgroundColor = `rgba(0, 0, 255, ${midValue / maxValue})`;
+        if (selectedPlayer) {
+            const playerLeftValue = +selectedPlayer[leftStat];
+            const playerMidValue = +selectedPlayer[midStat];
+            const playerRightValue = +selectedPlayer[rightStat];
+
+            const maxValuePlayer = Math.max(playerLeftValue, playerMidValue, playerRightValue);
     
-        rightSection.textContent = `${rightValue.toFixed(2)}%`;
-        rightSection.style.backgroundColor = `rgba(0, 0, 255, ${rightValue / maxValue})`;
+            leftSectionPlayer.textContent = `${playerLeftValue.toFixed(2)}`;
+            midSectionPlayer.textContent = `${playerMidValue.toFixed(2)}`;
+            rightSectionPlayer.textContent = `${playerRightValue.toFixed(2)}`;
+    
+            leftSectionPlayer.style.backgroundColor = `rgba(5, 146, 18, ${playerLeftValue / maxValuePlayer * 0.6})`;
+            midSectionPlayer.style.backgroundColor = `rgba(5, 146, 18, ${playerMidValue / maxValuePlayer * 0.6})`;
+            rightSectionPlayer.style.backgroundColor = `rgba(5, 146, 18, ${playerRightValue / maxValuePlayer * 0.6})`;
+        } else {
+            leftSectionPlayer.textContent = "";
+            midSectionPlayer.textContent = "";
+            rightSectionPlayer.textContent = "";
+    
+            leftSectionPlayer.style.backgroundColor = "transparent";
+            midSectionPlayer.style.backgroundColor = "transparent";
+            rightSectionPlayer.style.backgroundColor = "transparent";
+        }
     
         // Adjust z-index to ensure heatmap is above the field
         leftSection.style.zIndex = "2";
         midSection.style.zIndex = "2";
         rightSection.style.zIndex = "2";
     }
+    
+    
+    
+    
     
 
     function validateImageUrl(url, callback) {
@@ -540,11 +580,11 @@ document.addEventListener("DOMContentLoaded", function() {
     function initializeSearchBox(data) {
         const playerSearchInput = document.getElementById('player-search');
         const searchResultsContainer = document.getElementById('search-results');
-    
+
         playerSearchInput.addEventListener('input', function() {
             const query = playerSearchInput.value.toLowerCase();
             searchResultsContainer.innerHTML = '';
-    
+
             if (query.length > 0) {
                 const filteredPlayers = data.filter(player => player.short_name.toLowerCase().includes(query));
                 filteredPlayers.forEach(player => {
@@ -555,7 +595,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     resultItem.addEventListener('click', function() {
                         playerSearchInput.value = '';
                         searchResultsContainer.innerHTML = '';
-    
+
                         // Display selected player tag
                         const playerTag = document.createElement('div');
                         playerTag.classList.add('player-tag');
@@ -563,33 +603,28 @@ document.addEventListener("DOMContentLoaded", function() {
                         const selectedPlayerContainer = document.getElementById('selected-player');
                         selectedPlayerContainer.innerHTML = ''; // Clear previous player tags
                         selectedPlayerContainer.appendChild(playerTag);
-    
-                        console.log("Player tag created: ", playerTag);
-    
+
                         // Add event listener to the player tag to display profile
                         playerTag.addEventListener('click', function(event) {
                             if (!event.target.classList.contains('remove-tag')) {
-                                console.log("Displaying profile for player: ", player);
                                 displayPlayerProfile(player, data);
                                 document.getElementById('player-info').classList.add('show');
-                                console.log("Player info panel should be visible");
-                            } else {
-                                console.log("Clicked on remove tag");
                             }
                         });
-    
+
                         // Remove player tag on click of 'x'
                         playerTag.querySelector('.remove-tag').addEventListener('click', function() {
-                            console.log("Removing player tag");
                             selectedPlayerContainer.innerHTML = '';
                             activePlayer = null; // Clear the active player
                             updateBubbleChart(data, currentX, currentY, currentSize);
                             updateHistogram(data, currentHistogram, null);
+                            updateHeatmap(currentHeatmap, data, null);
                         });
-    
-                        // Set the active player and update the histogram
+
+                        // Set the active player and update the histogram and heatmap
                         activePlayer = player;
                         updateHistogram(data, currentHistogram, activePlayer);
+                        updateHeatmap(currentHeatmap, data, activePlayer);
                     });
                     searchResultsContainer.appendChild(resultItem);
                 });
