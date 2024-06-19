@@ -49,13 +49,28 @@
         <input type="text" id="player-search" placeholder="Buscar nombre de jugador">
         <div id="search-results"></div>
         <div id="selected-player"></div>
-        <div id="histogram-controls" class="select-container">
-            <label for="histogram-select">Histogram:</label>
-            <select id="histogram-select" class="dropdown"></select>
+        <div id="visualization-container">
+            <div id="histogram-container">
+                <div id="histogram-controls" class="select-container">
+                    <select id="histogram-select" class="dropdown"></select>
+                </div>
+                <div id="histogram-chart"></div>
+            </div>
+            <div id="heatmap-container">
+                <div id="heatmap-controls" class="select-container">
+                    <select id="heatmap-select" class="dropdown"></select>
+                </div>
+                <div id="field-image">
+                    <img src="../../resources/img/black-football-field.png" alt="Football Field">
+                    <div id="field-sections">
+                        <div class="field-section section-left"></div>
+                        <div class="field-section section-mid"></div>
+                        <div class="field-section section-right"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="histogram-chart"></div>
     </div>
-    <div id="height-graph"></div>
     <div id="player-info">
         <button class="close-btn">Close</button>
         <div id="profile-content"></div>
