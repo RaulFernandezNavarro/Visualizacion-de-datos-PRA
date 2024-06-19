@@ -9,14 +9,13 @@ document.addEventListener("DOMContentLoaded", function() {
         .attr("height", height);
 
     // Load the CSV data
-    d3.csv("../../resources/data/merged_df.csv").then(function(data) {
+    d3.csv("../../resources/data/merged_df_2.csv").then(function(data) {
 
         data = data.filter(d => d.Pos === "GK");
         const leagues = Array.from(new Set(data.map(d => d.league_name)));
         // Define color scale for leagues
-        const colorScale = d3.scaleOrdinal()
-            .domain(leagues)
-            .range(["#BED754", "#3795BD", "#3D0000", "#150050", "#950101"]);
+        const colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+            .domain(leagues);
 
         // Create legend
         const legend = d3.select("#legend").selectAll(".legend-item")
@@ -79,13 +78,17 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("stroke", "#ffffff")
             .attr("stroke-width", 2);
 
-        node.append("image")
-            .attr("xlink:href", d => d.player_face_url || "../../resources/img/no-pic.png") // Use fallback image if URL is missing
-            .attr("x", d => -d.radius)
-            .attr("y", d => -d.radius)
-            .attr("width", d => d.radius * 2)
-            .attr("height", d => d.radius * 2)
-            .attr("clip-path", "circle()");
+        node.each(function(d) {
+            validateImageUrl(d.player_face_url, function(validatedUrl) {
+                d3.select(this).append("image")
+                    .attr("xlink:href", validatedUrl)
+                    .attr("x", -d.radius)
+                    .attr("y", -d.radius)
+                    .attr("width", d.radius * 2)
+                    .attr("height", d.radius * 2)
+                    .attr("clip-path", "circle()");
+            }.bind(this));
+        });
 
         function ticked() {
             node.attr("transform", d => `translate(${d.x},${d.y})`);
@@ -114,22 +117,34 @@ document.addEventListener("DOMContentLoaded", function() {
             d.fy = null;
         }
 
-            // Close the sliding panel
-    document.querySelector('.close-btn').addEventListener('click', function() {
-        document.getElementById('player-info').classList.remove('show');
-    });
-
-    // Close the panel when clicking outside
-    document.addEventListener('click', function(event) {
-        const playerInfo = document.getElementById('player-info');
-        if (!playerInfo.contains(event.target) && playerInfo.classList.contains('show')) {
-            playerInfo.classList.remove('show');
+        // Validate image URL function
+        function validateImageUrl(url, callback) {
+            const img = new Image();
+            img.onload = function() {
+                callback(url);
+            };
+            img.onerror = function() {
+                callback("../../resources/img/no-pic.png");
+            };
+            img.src = url;
         }
-    });
 
-    // Prevent panel close when clicking inside the panel
-    document.getElementById('player-info').addEventListener('click', function(event) {
-        event.stopPropagation();
-    });
+        // Close the sliding panel
+        document.querySelector('.close-btn').addEventListener('click', function() {
+            document.getElementById('player-info').classList.remove('show');
+        });
+
+        // Close the panel when clicking outside
+        document.addEventListener('click', function(event) {
+            const playerInfo = document.getElementById('player-info');
+            if (!playerInfo.contains(event.target) && playerInfo.classList.contains('show')) {
+                playerInfo.classList.remove('show');
+            }
+        });
+
+        // Prevent panel close when clicking inside the panel
+        document.getElementById('player-info').addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
     });
 });

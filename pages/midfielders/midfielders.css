@@ -402,6 +402,16 @@ select {
     pointer-events: none; /* Ensure clicks pass through to the image */
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
 .field-section {
     position: absolute;
     width: 33.33%;
@@ -415,6 +425,7 @@ select {
     pointer-events: none;
     border: 1px solid #ffffff; /* Add a white border */
     box-sizing: border-box;
+    animation: fadeIn 2s ease-in-out;
 }
 
 .section-left, .section-mid, .section-right {

@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", function() {
         "Toques de balon": ["TouDef3rd", "TouMid3rd", "TouAtt3rd"],
         "Entradas": ["TklDef3rd", "TklMid3rd", "TklAtt3rd"],
         "Pases completados": ["PasShoCmp", "PasMedCmp", "PasLonCmp"],
-
     }; // Columns allowed for heatmap and corresponding field thirds
 
     const defaultHeatmap = "Toques de balon";
@@ -193,8 +192,8 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("transform", d => `translate(${d.xPos},${d.yPos})`)
             .on("click", (event, d) => {
                 event.stopPropagation();
-                // Display profile
-                displayPlayerProfile(d, data);
+                addPlayerTag(d, data);
+                displayPlayerProfile(d, data); // Use the displayPlayerProfile function from profile.js
                 document.getElementById('player-info').classList.add('show');
             });
 
@@ -254,6 +253,39 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("r", 0)
             .remove();
     }
+
+    function addPlayerTag(player, data) {
+        // Display selected player tag
+        const playerTag = document.createElement('div');
+        playerTag.classList.add('player-tag');
+        playerTag.innerHTML = `<img src="${player.player_face_url}" alt="${player.short_name}" class="player-thumbnail">${player.short_name} <span class="remove-tag">x</span>`;
+        const selectedPlayerContainer = document.getElementById('selected-player');
+        selectedPlayerContainer.innerHTML = ''; // Clear previous player tags
+        selectedPlayerContainer.appendChild(playerTag);
+    
+        // Add event listener to the player tag to display profile
+        playerTag.addEventListener('click', function(event) {
+            if (!event.target.classList.contains('remove-tag')) {
+                displayPlayerProfile(player, data);
+                document.getElementById('player-info').classList.add('show');
+            }
+        });
+    
+        // Remove player tag on click of 'x'
+        playerTag.querySelector('.remove-tag').addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevent the profile from showing when removing the tag
+            selectedPlayerContainer.innerHTML = '';
+            activePlayer = null; // Clear the active player
+            updateBubbleChart(data, currentX, currentY, currentSize);
+            updateHistogram(data, currentHistogram, null);
+            updateHeatmap(currentHeatmap, data, null);
+        });
+    
+        // Set the active player and update the histogram and heatmap
+        activePlayer = player;
+        updateHistogram(data, currentHistogram, activePlayer);
+        updateHeatmap(currentHeatmap, data, activePlayer);
+    }     
 
     function updateBubbleChart(data, xColumn, yColumn, sizeColumn) {
         const svg = d3.select("#bubble-chart").select("svg");
@@ -403,7 +435,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             .attr('y', y(bin.length))
                             .attr('width', Math.max(0, x(bin.x1) - x(bin.x0) - 1))
                             .attr('height', histogramHeight - y(bin.length))
-                            .attr('fill', rgb(5, 146, 18));
+                            .attr('fill', 'rgb(5, 146, 18)');
                     }
                 });
             });
@@ -513,11 +545,16 @@ document.addEventListener("DOMContentLoaded", function() {
         midSection.style.backgroundColor = `rgba(128, 128, 128, ${midValue / maxValue * 0.7})`;
         rightSection.style.backgroundColor = `rgba(128, 128, 128, ${rightValue / maxValue * 0.7})`;
     
+        // Apply animation class
+        leftSection.classList.add('fade-in');
+        midSection.classList.add('fade-in');
+        rightSection.classList.add('fade-in');
+    
         if (selectedPlayer) {
             const playerLeftValue = +selectedPlayer[leftStat];
             const playerMidValue = +selectedPlayer[midStat];
             const playerRightValue = +selectedPlayer[rightStat];
-
+    
             const maxValuePlayer = Math.max(playerLeftValue, playerMidValue, playerRightValue);
     
             leftSectionPlayer.textContent = `${playerLeftValue.toFixed(2)}`;
@@ -544,10 +581,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     
-    
-    
-    
-
     function validateImageUrl(url, callback) {
         const img = new Image();
         img.onload = function() {

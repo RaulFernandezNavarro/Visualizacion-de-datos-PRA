@@ -282,6 +282,7 @@ function updateBarChart(playersData, currentPlayer, selectedStat) {
 
     // Create histogram data
     const histogramData = sortedPlayers.map(player => player[selectedStat]);
+    console.log("Max histogram value:", Math.max(...histogramData));
 
     // Clear previous chart
     d3.select('#bar-chart').select("svg").remove();
@@ -299,7 +300,7 @@ function updateBarChart(playersData, currentPlayer, selectedStat) {
 
     // Define x and y scales
     const x = d3.scaleLinear()
-        .domain([0, d3.max(histogramData)])  // Ensure the x domain covers the full range
+        .domain([0, Math.max(...histogramData)])  // Ensure the x domain covers the full range
         .nice()  // Adds some padding to the domain
         .range([0, width]);
 
