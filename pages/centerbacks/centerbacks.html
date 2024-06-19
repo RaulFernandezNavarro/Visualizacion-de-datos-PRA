@@ -25,10 +25,9 @@
     </div>
     <button id="menu-btn" class="menu-btn">&#9776;</button>
     <div class="hero-section">
-        <img src="../../resources/img/ramos.jpg" alt="Gianluigi Buffon besando el trofeo de la Copa del Mundo" class="hero-image">
+        <img src="../../resources/img/kroos.jpeg" class="hero-image">
         <div class="overlay">
-            <h2>Defensas</h2>
-            <h1>Centrales</h1>
+            <h1>Centrocampistas</h1>
         </div>
     </div>
     <div class="content">
@@ -50,16 +49,39 @@
         <input type="text" id="player-search" placeholder="Buscar nombre de jugador">
         <div id="search-results"></div>
         <div id="selected-player"></div>
+        <div id="legend" class="legend">
+            <div class="legend-item">
+                <div class="legend-color grey"></div>
+                <span>Todos los jugadores</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color green"></div>
+                <span>Jugador seleccionado</span>
+            </div>
+        </div>        
         <div id="visualization-container">
             <div id="histogram-container">
                 <div id="histogram-controls" class="select-container">
-                    <label for="histogram-select">Histogram:</label>
                     <select id="histogram-select" class="dropdown"></select>
                 </div>
                 <div id="histogram-chart"></div>
             </div>
-            <div id="height-graph-container">
-                <div id="height-graph"></div>
+            <div id="heatmap-container">
+                <div id="heatmap-controls" class="select-container">
+                    <select id="heatmap-select" class="dropdown"></select>
+                    <p id="heatmap-text">(por partido)</p>
+                </div>
+                <div id="field-image">
+                    <img src="../../resources/img/black-football-field.png" alt="Football Field">
+                    <div id="field-sections">
+                        <div class="field-section section-left section-grey"></div>
+                        <div class="field-section section-mid section-grey"></div>
+                        <div class="field-section section-right section-grey"></div>
+                        <div class="field-section section-left-player"></div>
+                        <div class="field-section section-mid-player"></div>
+                        <div class="field-section section-right-player"></div>
+                    </div>
+                </div>                
             </div>
         </div>
     </div>
@@ -67,6 +89,7 @@
         <button class="close-btn">Close</button>
         <div id="profile-content"></div>
     </div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="../../common/profile.js"></script> <!-- Import profile.js -->
     <script src="./centerbacks.js"></script>
     <script src="../../common/menu.js"></script>

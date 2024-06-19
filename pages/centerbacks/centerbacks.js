@@ -1,10 +1,17 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const allowedColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "TklWon", "Blocks", "Int", "Tkl+Int", "Clr", "Fls", "PKcon", "OG", "Recov" ];
-    const allowedHistogramColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "TklWon", "Blocks", "Int", "Tkl+Int", "Clr", "Fls", "PKcon", "OG", "Recov" ];
-    const defaultX = "TklWon";
-    const defaultY = "AerWon%";
+    const allowedColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches" ];
+    const allowedHistogramColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches" ];
+    const defaultX = "Touches";
+    const defaultY = "Pas3rd";
     const defaultSize = "Min";
-    const defaultHistogram = "Tkl+Int";
+    const defaultHistogram = "PasTotCmp%";
+    const allowedHeatmapColumns = {
+        "Toques de balon": ["TouDef3rd", "TouMid3rd", "TouAtt3rd"],
+        "Entradas": ["TklDef3rd", "TklMid3rd", "TklAtt3rd"],
+        "Pases completados": ["PasShoCmp", "PasMedCmp", "PasLonCmp"],
+    }; // Columns allowed for heatmap and corresponding field thirds
+
+    const defaultHeatmap = "Toques de balon";
 
     const margin = { top: 50, right: 30, bottom: 70, left: 60 };
     let bubbleWidth, bubbleHeight, histogramWidth, histogramHeight;
@@ -12,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let currentY = defaultY;
     let currentSize = defaultSize;
     let currentHistogram = defaultHistogram;
+    let currentHeatmap = defaultHeatmap;
     let activePlayer = null; // Store the currently selected player
 
     function updateDimensions() {
@@ -40,6 +48,7 @@ document.addEventListener("DOMContentLoaded", function() {
     populateDropdown("y-axis-select", allowedColumns, defaultY);
     populateDropdown("size-select", allowedColumns, defaultSize);
     populateDropdown("histogram-select", allowedHistogramColumns, defaultHistogram);
+    populateDropdown("heatmap-select", Object.keys(allowedHeatmapColumns), defaultHeatmap);
 
     function createBubbleSvg(width, height) {
         return d3.select("#bubble-chart")
@@ -61,17 +70,30 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function resize() {
         updateDimensions();
-
+    
         d3.select("#bubble-chart").select("svg").remove();
         d3.select("#histogram-chart").select("svg").remove();
-
+    
         // Redraw everything with new dimensions
         createBubbleChart(data, currentX, currentY, currentSize);
         createHistogram(data, currentHistogram, activePlayer);
-
+        updateHeatmap(currentHeatmap);
+    
         // Adjust hero section
         adjustHeroSection();
+    
+        // Ensure heatmap sections fit the field
+        const fieldImage = document.querySelector("#field-image img");
+        const fieldWidth = fieldImage.clientWidth;
+        const fieldHeight = fieldImage.clientHeight;
+    
+        const fieldSections = document.querySelectorAll(".field-section");
+        fieldSections.forEach(section => {
+            section.style.width = `${fieldWidth / 3}px`;
+            section.style.height = `${fieldHeight}px`;
+        });
     }
+    
 
     window.addEventListener("resize", resize);
 
@@ -85,6 +107,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Initial adjustments
     updateDimensions();
     adjustHeroSection();
+    // resize();
 
     let data;
 
@@ -98,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Create bubble chart
         createBubbleChart(data, currentX, currentY, currentSize);
         createHistogram(data, currentHistogram, activePlayer);
-        createHeightGraph(data);
+        updateHeatmap(currentHeatmap, data);
         initializeSearchBox(data);
 
         // Update bubble chart on dropdown change
@@ -122,62 +145,59 @@ document.addEventListener("DOMContentLoaded", function() {
             currentHistogram = d3.select("#histogram-select").property("value");
             updateHistogram(data, currentHistogram, activePlayer);
         });
+
+        // Update heatmap on dropdown change
+        d3.select("#heatmap-select").on("change", function() {
+            currentHeatmap = d3.select("#heatmap-select").property("value");
+            updateHeatmap(currentHeatmap, data, activePlayer);
+        });
     });
 
-    function validateImageUrl(url, callback) {
-        const img = new Image();
-        img.onload = function() {
-            callback(url);
-        };
-        img.onerror = function() {
-            callback("../../resources/img/no-pic.png");
-        };
-        img.src = url;
-    }
-
     function createBubbleChart(data, xColumn, yColumn, sizeColumn) {
+        const filteredData = filterOutliers(data, xColumn, yColumn, sizeColumn);
         const svg = createBubbleSvg(bubbleWidth, bubbleHeight);
-
+    
         const x = d3.scaleLinear()
-            .domain([0, d3.max(data, d => +d[xColumn])])
+            .domain([0, d3.max(filteredData, d => +d[xColumn])])
             .range([0, bubbleWidth - margin.right]);
         const xAxis = svg.append("g")
             .attr("class", "x-axis")
             .attr("transform", `translate(0,${bubbleHeight})`)
             .call(d3.axisBottom(x));
-
+    
         const y = d3.scaleLinear()
-            .domain([0, d3.max(data, d => +d[yColumn])])
+            .domain([0, d3.max(filteredData, d => +d[yColumn])])
             .range([bubbleHeight, 0]);
         const yAxis = svg.append("g")
             .attr("class", "y-axis")
             .call(d3.axisLeft(y));
-
+    
         const size = d3.scaleSqrt()
-            .domain([0, d3.max(data, d => +d[sizeColumn])])
+            .domain([0, d3.max(filteredData, d => +d[sizeColumn])])
             .range([0, 50]);
-
+    
         const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-
-        const nodes = data.map(d => ({
+    
+        const nodes = filteredData.map(d => ({
             ...d,
             xPos: x(d[xColumn]),
             yPos: y(d[yColumn]),
             radius: size(+d[sizeColumn])
         }));
-
+    
         const node = svg.selectAll("g.node")
             .data(nodes, d => d.id);
-
+    
         const nodeEnter = node.enter().append("g")
             .attr("class", "node")
             .attr("transform", d => `translate(${d.xPos},${d.yPos})`)
             .on("click", (event, d) => {
                 event.stopPropagation();
+                addPlayerTag(d, data);
                 displayPlayerProfile(d, data); // Use the displayPlayerProfile function from profile.js
                 document.getElementById('player-info').classList.add('show');
             });
-
+    
         nodeEnter.append("circle")
             .attr("r", 0)
             .attr("fill", d => colorScale(d.league_name))
@@ -186,7 +206,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .transition()
             .duration(1000)
             .attr("r", d => d.radius);
-
+    
         nodeEnter.each(function(d) {
             validateImageUrl(d.player_face_url, function(validatedUrl) {
                 d3.select(this).append("image")
@@ -204,18 +224,18 @@ document.addEventListener("DOMContentLoaded", function() {
                     .attr("clip-path", "circle()");
             }.bind(this));
         });
-
+    
         const nodeUpdate = node.merge(nodeEnter);
-
+    
         nodeUpdate.transition()
             .duration(1000)
             .attr("transform", d => `translate(${x(d[xColumn])},${y(d[yColumn])})`);
-
+    
         nodeUpdate.select("circle")
             .transition()
             .duration(1000)
             .attr("r", d => d.radius);
-
+    
         nodeUpdate.each(function(d) {
             validateImageUrl(d.player_face_url, function(validatedUrl) {
                 d3.select(this).select("image")
@@ -228,50 +248,51 @@ document.addEventListener("DOMContentLoaded", function() {
                     .attr("xlink:href", validatedUrl);
             }.bind(this));
         });
-
+    
         node.exit().transition()
             .duration(1000)
             .attr("r", 0)
             .remove();
     }
-
+    
     function updateBubbleChart(data, xColumn, yColumn, sizeColumn) {
+        const filteredData = filterOutliers(data, xColumn, yColumn, sizeColumn);
         const svg = d3.select("#bubble-chart").select("svg");
-
+    
         const x = d3.scaleLinear()
-            .domain([0, d3.max(data, d => +d[xColumn])])
+            .domain([0, d3.max(filteredData, d => +d[xColumn])])
             .range([0, bubbleWidth - margin.right]);
         const xAxis = svg.select(".x-axis")
             .transition()
             .duration(1000)
             .call(d3.axisBottom(x));
-
+    
         const y = d3.scaleLinear()
-            .domain([0, d3.max(data, d => +d[yColumn])])
+            .domain([0, d3.max(filteredData, d => +d[yColumn])])
             .range([bubbleHeight, 0]);
         const yAxis = svg.select(".y-axis")
             .transition()
             .duration(1000)
             .call(d3.axisLeft(y));
-
+    
         const size = d3.scaleSqrt()
-            .domain([0, d3.max(data, d => +d[sizeColumn])])
+            .domain([0, d3.max(filteredData, d => +d[sizeColumn])])
             .range([0, 50]);
-
-        const nodes = data.map(d => ({
+    
+        const nodes = filteredData.map(d => ({
             ...d,
             xPos: x(d[xColumn]),
             yPos: y(d[yColumn]),
             radius: size(+d[sizeColumn])
         }));
-
+    
         const node = svg.selectAll("g.node")
             .data(nodes, d => d.id);
-
+    
         const nodeEnter = node.enter().append("g")
             .attr("class", "node")
             .attr("transform", d => `translate(${x(d[xColumn])},${y(d[yColumn])})`);
-
+    
         nodeEnter.append("circle")
             .attr("r", 0)
             .attr("fill", d => d3.scaleOrdinal(d3.schemeCategory10)(d.league_name))
@@ -280,7 +301,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .transition()
             .duration(1000)
             .attr("r", d => d.radius);
-
+    
         nodeEnter.each(function(d) {
             validateImageUrl(d.player_face_url, function(validatedUrl) {
                 d3.select(this).append("image")
@@ -298,18 +319,18 @@ document.addEventListener("DOMContentLoaded", function() {
                     .attr("clip-path", "circle()");
             }.bind(this));
         });
-
+    
         const nodeUpdate = node.merge(nodeEnter);
-
+    
         nodeUpdate.transition()
             .duration(1000)
             .attr("transform", d => `translate(${x(d[xColumn])},${y(d[yColumn])})`);
-
+    
         nodeUpdate.select("circle")
             .transition()
             .duration(1000)
             .attr("r", d => d.radius);
-
+    
         nodeUpdate.each(function(d) {
             validateImageUrl(d.player_face_url, function(validatedUrl) {
                 d3.select(this).select("image")
@@ -322,12 +343,46 @@ document.addEventListener("DOMContentLoaded", function() {
                     .attr("xlink:href", validatedUrl);
             }.bind(this));
         });
-
+    
         node.exit().transition()
             .duration(1000)
             .attr("r", 0)
             .remove();
     }
+    
+
+    function addPlayerTag(player, data) {
+        // Display selected player tag
+        const playerTag = document.createElement('div');
+        playerTag.classList.add('player-tag');
+        playerTag.innerHTML = `<img src="${player.player_face_url}" alt="${player.short_name}" class="player-thumbnail">${player.short_name} <span class="remove-tag">x</span>`;
+        const selectedPlayerContainer = document.getElementById('selected-player');
+        selectedPlayerContainer.innerHTML = ''; // Clear previous player tags
+        selectedPlayerContainer.appendChild(playerTag);
+    
+        // Add event listener to the player tag to display profile
+        playerTag.addEventListener('click', function(event) {
+            if (!event.target.classList.contains('remove-tag')) {
+                displayPlayerProfile(player, data);
+                document.getElementById('player-info').classList.add('show');
+            }
+        });
+    
+        // Remove player tag on click of 'x'
+        playerTag.querySelector('.remove-tag').addEventListener('click', function(event) {
+            event.stopPropagation(); // Prevent the profile from showing when removing the tag
+            selectedPlayerContainer.innerHTML = '';
+            activePlayer = null; // Clear the active player
+            updateBubbleChart(data, currentX, currentY, currentSize);
+            updateHistogram(data, currentHistogram, null);
+            updateHeatmap(currentHeatmap, data, null);
+        });
+    
+        // Set the active player and update the histogram and heatmap
+        activePlayer = player;
+        updateHistogram(data, currentHistogram, activePlayer);
+        updateHeatmap(currentHeatmap, data, activePlayer);
+    }     
 
     function createHistogram(data, column, selectedPlayer = null) {
         const svg = createHistogramSvg(histogramWidth, histogramHeight);
@@ -383,7 +438,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             .attr('y', y(bin.length))
                             .attr('width', Math.max(0, x(bin.x1) - x(bin.x0) - 1))
                             .attr('height', histogramHeight - y(bin.length))
-                            .attr('fill', 'lightblue');
+                            .attr('fill', 'rgb(5, 146, 18)');
                     }
                 });
             });
@@ -449,91 +504,124 @@ document.addEventListener("DOMContentLoaded", function() {
                             .attr('y', y(bin.length))
                             .attr('width', Math.max(0, x(bin.x1) - x(bin.x0) - 1))
                             .attr('height', histogramHeight - y(bin.length))
-                            .attr('fill', 'lightblue');
+                            .attr('fill', 'rgb(5, 146, 18)');
                     }
                 });
             });
         }
     }
 
-    function createHeightGraph(data, selectedPlayerHeight = null) {
-        const heightGraph = d3.select("#height-graph");
-        heightGraph.selectAll("*").remove(); // Clear existing content
-
-        const heights = data.map(d => +d.height_cm).sort((a, b) => a - b);
-        const percentiles = [0, 0.25, 0.5, 0.75, 1].map(p => heights[Math.floor(p * (heights.length - 1))]);
-        const scaleFactor = 2.5; // Adjust scale factor to control the height of images
-
-        const histogramHeight = 400; // Assuming the histogram height is 400px
-        const svgHeight = histogramHeight; // SVG height matches histogram height
-        const svgWidth = (percentiles.length + (selectedPlayerHeight ? 1 : 0)) * 200; // Adjust width based on the number of images
-
-        const svg = heightGraph.append("svg")
-            .attr("width", svgWidth)
-            .attr("height", svgHeight)
-            .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
-            .style("display", "block");
-
-        const container = svg.selectAll("g")
-            .data(percentiles)
-            .enter().append("g")
-            .attr("transform", (d, i) => `translate(${i * 120},0)`);
-
-        container.append("image")
-            .attr("xlink:href", "../../resources/img/monigote.png")
-            .attr("height", d => `${d * scaleFactor}px`)
-            .attr("width", d => `${d * scaleFactor / 2}px`)
-            .attr("x", d => -d * scaleFactor / 4) // Center the image
-            .attr("y", d => svgHeight - d * scaleFactor - 20); // Align bottom and add margin for text
-
-        container.append("text")
-            .attr("x", 0)
-            .attr("y", d => svgHeight - 5) // Position the text at the bottom
-            .attr("text-anchor", "middle")
-            .attr("fill", "white")
-            .text(d => `${d} cm`);
-
-        if (selectedPlayerHeight !== null) {
-            // Slide existing images to the left
-            svg.selectAll("g")
-                .transition()
-                .duration(1000)
-                .attr("transform", (d, i) => `translate(${i * 120 - 60},0)`); // Move left by 60 units
-
-            const selectedContainer = svg.append("g")
-                .attr("transform", `translate(${percentiles.length * 120},0)`);
-
-            selectedContainer.append("image")
-                .attr("xlink:href", "../../resources/img/monigote.png")
-                .attr("height", `${selectedPlayerHeight * scaleFactor}px`)
-                .attr("width", `${selectedPlayerHeight * scaleFactor / 2}px`)
-                .attr("x", -selectedPlayerHeight * scaleFactor / 4) // Center the image
-                .attr("y", svgHeight - selectedPlayerHeight * scaleFactor - 20); // Align bottom and add margin for text
-
-            selectedContainer.append("text")
-                .attr("x", 0)
-                .attr("y", svgHeight - 5) // Position the text at the bottom
-                .attr("text-anchor", "middle")
-                .attr("fill", "white")
-                .text(`${selectedPlayerHeight} cm`);
+    function updateHeatmap(heatmapStat, data, selectedPlayer = null) {
+        const stats = allowedHeatmapColumns[heatmapStat];
+        if (!stats) {
+            console.error("Invalid heatmapStat:", heatmapStat);
+            return;
         }
+        const leftStat = stats[0];
+        const midStat = stats[1];
+        const rightStat = stats[2];
+    
+        const leftSection = document.querySelector(".section-left");
+        const midSection = document.querySelector(".section-mid");
+        const rightSection = document.querySelector(".section-right");
+    
+        const leftSectionPlayer = document.querySelector(".section-left-player");
+        const midSectionPlayer = document.querySelector(".section-mid-player");
+        const rightSectionPlayer = document.querySelector(".section-right-player");
+    
+        const leftValue = d3.mean(data, d => +d[leftStat]);
+        const midValue = d3.mean(data, d => +d[midStat]);
+        const rightValue = d3.mean(data, d => +d[rightStat]);
+    
+        if (leftValue === undefined || midValue === undefined || rightValue === undefined) {
+            console.error("One or more values are undefined:", { leftValue, midValue, rightValue });
+            return;
+        }
+    
+        const maxValue = Math.max(leftValue, midValue, rightValue);
+    
+        leftSection.textContent = `${leftValue.toFixed(2)}`;
+        midSection.textContent = `${midValue.toFixed(2)}`;
+        rightSection.textContent = `${rightValue.toFixed(2)}`;
+    
+        leftSection.style.backgroundColor = `rgba(128, 128, 128, ${leftValue / maxValue * 0.7})`;
+        midSection.style.backgroundColor = `rgba(128, 128, 128, ${midValue / maxValue * 0.7})`;
+        rightSection.style.backgroundColor = `rgba(128, 128, 128, ${rightValue / maxValue * 0.7})`;
+    
+        // Apply animation class
+        leftSection.classList.add('fade-in');
+        midSection.classList.add('fade-in');
+        rightSection.classList.add('fade-in');
+    
+        if (selectedPlayer) {
+            const playerLeftValue = +selectedPlayer[leftStat];
+            const playerMidValue = +selectedPlayer[midStat];
+            const playerRightValue = +selectedPlayer[rightStat];
+    
+            const maxValuePlayer = Math.max(playerLeftValue, playerMidValue, playerRightValue);
+    
+            leftSectionPlayer.textContent = `${playerLeftValue.toFixed(2)}`;
+            midSectionPlayer.textContent = `${playerMidValue.toFixed(2)}`;
+            rightSectionPlayer.textContent = `${playerRightValue.toFixed(2)}`;
+    
+            leftSectionPlayer.style.backgroundColor = `rgba(5, 146, 18, ${playerLeftValue / maxValuePlayer * 0.6})`;
+            midSectionPlayer.style.backgroundColor = `rgba(5, 146, 18, ${playerMidValue / maxValuePlayer * 0.6})`;
+            rightSectionPlayer.style.backgroundColor = `rgba(5, 146, 18, ${playerRightValue / maxValuePlayer * 0.6})`;
+        } else {
+            leftSectionPlayer.textContent = "";
+            midSectionPlayer.textContent = "";
+            rightSectionPlayer.textContent = "";
+    
+            leftSectionPlayer.style.backgroundColor = "transparent";
+            midSectionPlayer.style.backgroundColor = "transparent";
+            rightSectionPlayer.style.backgroundColor = "transparent";
+        }
+    
+        // Adjust z-index to ensure heatmap is above the field
+        leftSection.style.zIndex = "2";
+        midSection.style.zIndex = "2";
+        rightSection.style.zIndex = "2";
+    }
+    
+    
+    function validateImageUrl(url, callback) {
+        const img = new Image();
+        img.onload = function() {
+            callback(url);
+        };
+        img.onerror = function() {
+            callback("../../resources/img/no-pic.png");
+        };
+        img.src = url;
     }
 
-    function filterOutliers(data, columns) {
-        const filteredData = data.filter(d => {
-            for (let column of columns) {
-                const values = data.map(d => +d[column]);
-                const mean = d3.mean(values);
-                const deviation = d3.deviation(values);
-                const zScore = (d[column] - mean) / deviation;
-                if (Math.abs(zScore) > 3) {
-                    return false;
-                }
-            }
-            return true;
+    function filterOutliers(data, xColumn, yColumn, sizeColumn) {
+        function calculateIQR(arr) {
+            const sorted = arr.slice().sort((a, b) => a - b);
+            const q1 = sorted[Math.floor((sorted.length / 4))];
+            const q3 = sorted[Math.ceil((sorted.length * (3 / 4)))];
+            const iqr = q3 - q1;
+            return { q1, q3, iqr };
+        }
+    
+        const xValues = data.map(d => +d[xColumn]);
+        const yValues = data.map(d => +d[yColumn]);
+        const sizeValues = data.map(d => +d[sizeColumn]);
+    
+        const { q1: xQ1, q3: xQ3, iqr: xIQR } = calculateIQR(xValues);
+        const { q1: yQ1, q3: yQ3, iqr: yIQR } = calculateIQR(yValues);
+        const { q1: sizeQ1, q3: sizeQ3, iqr: sizeIQR } = calculateIQR(sizeValues);
+    
+        return data.filter(d => {
+            const x = +d[xColumn];
+            const y = +d[yColumn];
+            const size = +d[sizeColumn];
+            return (x >= xQ1 - 3 * xIQR && x <= xQ3 + 3 * xIQR) &&
+                   (y >= yQ1 - 3 * yIQR && y <= yQ3 + 3 * yIQR) &&
+                   (size >= sizeQ1 - 3 * sizeIQR && size <= sizeQ3 + 3 * sizeIQR);
         });
-        return filteredData;
-    }    
+    }
+    
 
     // Close the sliding panel
     document.querySelector('.close-btn').addEventListener('click', function() {
@@ -594,15 +682,13 @@ document.addEventListener("DOMContentLoaded", function() {
                             activePlayer = null; // Clear the active player
                             updateBubbleChart(data, currentX, currentY, currentSize);
                             updateHistogram(data, currentHistogram, null);
-                            createHeightGraph(data);
+                            updateHeatmap(currentHeatmap, data, null);
                         });
 
-                        // Set the active player and update the histogram
+                        // Set the active player and update the histogram and heatmap
                         activePlayer = player;
                         updateHistogram(data, currentHistogram, activePlayer);
-
-                        // Add the selected player to the height graph
-                        createHeightGraph(data, +player.height_cm);
+                        updateHeatmap(currentHeatmap, data, activePlayer);
                     });
                     searchResultsContainer.appendChild(resultItem);
                 });

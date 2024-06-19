@@ -69,7 +69,23 @@ function initFilters(leagues, data, updateVisualization) {
     });
 
     // Sorting logic
-    const sortingColumns = ['Age', 'Goals', 'Min', 'SoT%'];
+    const sortingColumns = [
+        "MP", "Starts", "Min", "90s", "Goals", "Shots", "SoT", "SoT%", "G/Sh", "G/SoT", 
+        "ShoDist", "ShoFK", "ShoPK", "PKatt", "PasTotCmp", "PasTotAtt", "PasTotCmp%", 
+        "PasTotDist", "PasTotPrgDist", "PasShoCmp", "PasShoAtt", "PasShoCmp%", "PasMedCmp", 
+        "PasMedAtt", "PasMedCmp%", "PasLonCmp", "PasLonAtt", "PasLonCmp%", "Assists", 
+        "PasAss", "Pas3rd", "PPA", "CrsPA", "PasProg", "PasAtt", "PasLive", "PasDead", 
+        "PasFK", "TB", "Sw", "PasCrs", "TI", "CK", "CkIn", "CkOut", "CkStr", "PasCmp", 
+        "PasOff", "PasBlocks", "SCA", "ScaPassLive", "ScaPassDead", "ScaDrib", "ScaSh", 
+        "ScaFld", "ScaDef", "GCA", "GcaPassLive", "GcaPassDead", "GcaDrib", "GcaSh", 
+        "GcaFld", "GcaDef", "Tkl", "TklWon", "TklDef3rd", "TklMid3rd", "TklAtt3rd", 
+        "TklDri", "TklDriAtt", "TklDri%", "TklDriPast", "Blocks", "BlkSh", "BlkPass", 
+        "Int", "Tkl+Int", "Clr", "Err", "Touches", "TouDefPen", "TouDef3rd", "TouMid3rd", 
+        "TouAtt3rd", "TouAttPen", "TouLive", "ToAtt", "ToSuc", "ToSuc%", "ToTkl", "ToTkl%", 
+        "Carries", "CarTotDist", "CarPrgDist", "CarProg", "Car3rd", "CPA", "CarMis", "CarDis", 
+        "Rec", "RecProg", "CrdY", "CrdR", "2CrdY", "Fls", "Fld", "Off", "Crs", "TklW", 
+        "PKwon", "PKcon", "OG", "Recov", "AerWon", "AerLost", "AerWon%"
+    ];
     const sortOrders = {}; // Keeps track of sorting order for each column
 
     // Initialize sortOrders to default to null

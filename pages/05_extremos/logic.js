@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const allowedColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches" ];
-    const allowedHistogramColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches" ];
+    const allowedColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches" ];["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches", "PKwon", "Fld", "Crs", "SCA", "G/Sh", "G/SoT", "ToSuc", "ToSuc%" ];
+    const allowedHistogramColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches" ];["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches", "PKwon", "Fld", "Crs", "SCA", "G/Sh", "G/SoT", "ToSuc", "ToSuc%" ];
     const defaultX = "Touches";
     const defaultY = "Pas3rd";
     const defaultSize = "Min";
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Load the CSV data
     d3.csv("../../resources/data/merged_df_2.csv").then(function(csvData) {
-        data = csvData.filter(d => d.player_positions === "CM").sort((a, b) => d3.descending(+a.Min, +b.Min));
+        data = csvData.filter(d => d.player_positions === "LW" || d.player_positions === "RW").sort((a, b) => d3.descending(+a.Min, +b.Min));
 
         // Add a unique id to each data point
         data.forEach((d, i) => d.id = i);

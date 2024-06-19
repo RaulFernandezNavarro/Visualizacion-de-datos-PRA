@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centrales</title>
-    <link rel="stylesheet" href="./wingers.css">
+    <link rel="stylesheet" href="./centerbacks.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500;700&display=swap" rel="stylesheet">
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -25,9 +25,10 @@
     </div>
     <button id="menu-btn" class="menu-btn">&#9776;</button>
     <div class="hero-section">
-        <img src="../../resources/img/ronaldinho.jpg" class="hero-image">
+        <img src="../../resources/img/ramos.jpg" alt="Gianluigi Buffon besando el trofeo de la Copa del Mundo" class="hero-image">
         <div class="overlay">
-            <h1>Extremos</h1>
+            <h2>Defensas</h2>
+            <h1>Centrales</h1>
         </div>
     </div>
     <div class="content">
@@ -49,20 +50,25 @@
         <input type="text" id="player-search" placeholder="Buscar nombre de jugador">
         <div id="search-results"></div>
         <div id="selected-player"></div>
-        <div id="histogram-controls" class="select-container">
-            <label for="histogram-select">Histogram:</label>
-            <select id="histogram-select" class="dropdown"></select>
+        <div id="visualization-container">
+            <div id="histogram-container">
+                <div id="histogram-controls" class="select-container">
+                    <label for="histogram-select">Histogram:</label>
+                    <select id="histogram-select" class="dropdown"></select>
+                </div>
+                <div id="histogram-chart"></div>
+            </div>
+            <div id="height-graph-container">
+                <div id="height-graph"></div>
+            </div>
         </div>
-        <div id="histogram-chart"></div>
     </div>
-    <div id="height-graph"></div>
     <div id="player-info">
         <button class="close-btn">Close</button>
         <div id="profile-content"></div>
     </div>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="../../common/profile.js"></script> <!-- Import profile.js -->
-    <script src="./wingers.js"></script>
+    <script src="./centerbacks.js"></script>
     <script src="../../common/menu.js"></script>
 </body>
 </html>

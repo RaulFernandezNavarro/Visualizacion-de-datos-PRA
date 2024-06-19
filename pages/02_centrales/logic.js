@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const allowedColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches" ];
-    const allowedHistogramColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "Blocks", "Int", "Tkl+Int", "Fls", "Recov", "Shots", "SoT", "SoT%", "PasShoCmp%", "PasMedCmp%", "PasLonCmp%", "Pas3rd", "GCA", "Touches" ];
-    const defaultX = "Touches";
-    const defaultY = "Pas3rd";
+    const allowedColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "TklWon", "Blocks", "Int", "Tkl+Int", "Clr", "Fls", "PKcon", "OG", "Recov" ];
+    const allowedHistogramColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "TklWon", "Blocks", "Int", "Tkl+Int", "Clr", "Fls", "PKcon", "OG", "Recov" ];
+    const defaultX = "TklWon";
+    const defaultY = "AerWon%";
     const defaultSize = "Min";
-    const defaultHistogram = "PasTotCmp%";
+    const defaultHistogram = "Tkl+Int";
     const allowedHeatmapColumns = {
         "Toques de balon": ["TouDef3rd", "TouMid3rd", "TouAtt3rd"],
         "Entradas": ["TklDef3rd", "TklMid3rd", "TklAtt3rd"],
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Load the CSV data
     d3.csv("../../resources/data/merged_df_2.csv").then(function(csvData) {
-        data = csvData.filter(d => d.player_positions === "CM").sort((a, b) => d3.descending(+a.Min, +b.Min));
+        data = csvData.filter(d => d.player_positions === "CB").sort((a, b) => d3.descending(+a.Min, +b.Min));
 
         // Add a unique id to each data point
         data.forEach((d, i) => d.id = i);
@@ -596,30 +596,31 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function filterOutliers(data, xColumn, yColumn, sizeColumn) {
-        function calculateIQR(arr) {
-            const sorted = arr.slice().sort((a, b) => a - b);
-            const q1 = sorted[Math.floor((sorted.length / 4))];
-            const q3 = sorted[Math.ceil((sorted.length * (3 / 4)))];
-            const iqr = q3 - q1;
-            return { q1, q3, iqr };
-        }
+        // function calculateIQR(arr) {
+        //     const sorted = arr.slice().sort((a, b) => a - b);
+        //     const q1 = sorted[Math.floor((sorted.length / 4))];
+        //     const q3 = sorted[Math.ceil((sorted.length * (3 / 4)))];
+        //     const iqr = q3 - q1;
+        //     return { q1, q3, iqr };
+        // }
     
-        const xValues = data.map(d => +d[xColumn]);
-        const yValues = data.map(d => +d[yColumn]);
-        const sizeValues = data.map(d => +d[sizeColumn]);
+        // const xValues = data.map(d => +d[xColumn]);
+        // const yValues = data.map(d => +d[yColumn]);
+        // const sizeValues = data.map(d => +d[sizeColumn]);
     
-        const { q1: xQ1, q3: xQ3, iqr: xIQR } = calculateIQR(xValues);
-        const { q1: yQ1, q3: yQ3, iqr: yIQR } = calculateIQR(yValues);
-        const { q1: sizeQ1, q3: sizeQ3, iqr: sizeIQR } = calculateIQR(sizeValues);
+        // const { q1: xQ1, q3: xQ3, iqr: xIQR } = calculateIQR(xValues);
+        // const { q1: yQ1, q3: yQ3, iqr: yIQR } = calculateIQR(yValues);
+        // const { q1: sizeQ1, q3: sizeQ3, iqr: sizeIQR } = calculateIQR(sizeValues);
     
-        return data.filter(d => {
-            const x = +d[xColumn];
-            const y = +d[yColumn];
-            const size = +d[sizeColumn];
-            return (x >= xQ1 - 3 * xIQR && x <= xQ3 + 3 * xIQR) &&
-                   (y >= yQ1 - 3 * yIQR && y <= yQ3 + 3 * yIQR) &&
-                   (size >= sizeQ1 - 3 * sizeIQR && size <= sizeQ3 + 3 * sizeIQR);
-        });
+        // return data.filter(d => {
+        //     const x = +d[xColumn];
+        //     const y = +d[yColumn];
+        //     const size = +d[sizeColumn];
+        //     return (x >= xQ1 - 3 * xIQR && x <= xQ3 + 3 * xIQR) &&
+        //            (y >= yQ1 - 3 * yIQR && y <= yQ3 + 3 * yIQR) &&
+        //            (size >= sizeQ1 - 3 * sizeIQR && size <= sizeQ3 + 3 * sizeIQR);
+        // });
+        return data;
     }
     
 
