@@ -1,10 +1,10 @@
 document.addEventListener("DOMContentLoaded", function() {
-    const allowedColumns = ["TklW", "AerWon%", "Min", "Goals"]; // Columns allowed for customization
-    const allowedHistogramColumns = ["TklW", "AerWon%", "Min", "Goals"]; // Columns allowed for histogram
-    const defaultX = "TklW";
+    const allowedColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "TklWon", "Blocks", "Int", "Tkl+Int", "Clr", "Fls", "PKcon", "OG", "Recov" ];
+    const allowedHistogramColumns = ["AerWon%", "Min", "Goals", "Age", "MP", "90s", "Starts", "PasTotCmp%", "Assists", "TklWon", "Blocks", "Int", "Tkl+Int", "Clr", "Fls", "PKcon", "OG", "Recov" ];
+    const defaultX = "TklWon";
     const defaultY = "AerWon%";
     const defaultSize = "Min";
-    const defaultHistogram = "Goals";
+    const defaultHistogram = "Tkl+Int";
 
     const margin = { top: 50, right: 30, bottom: 70, left: 60 };
     let bubbleWidth, bubbleHeight, histogramWidth, histogramHeight;
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let data;
 
     // Load the CSV data
-    d3.csv("../../resources/data/merged_df.csv").then(function(csvData) {
+    d3.csv("../../resources/data/merged_df_2.csv").then(function(csvData) {
         data = csvData.filter(d => d.player_positions === "CB").sort((a, b) => d3.descending(+a.Min, +b.Min));
 
         // Add a unique id to each data point
@@ -124,9 +124,20 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
+    function validateImageUrl(url, callback) {
+        const img = new Image();
+        img.onload = function() {
+            callback(url);
+        };
+        img.onerror = function() {
+            callback("../../resources/img/no-pic.png");
+        };
+        img.src = url;
+    }
+
     function createBubbleChart(data, xColumn, yColumn, sizeColumn) {
         const svg = createBubbleSvg(bubbleWidth, bubbleHeight);
-    
+
         const x = d3.scaleLinear()
             .domain([0, d3.max(data, d => +d[xColumn])])
             .range([0, bubbleWidth - margin.right]);
@@ -134,30 +145,30 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("class", "x-axis")
             .attr("transform", `translate(0,${bubbleHeight})`)
             .call(d3.axisBottom(x));
-    
+
         const y = d3.scaleLinear()
             .domain([0, d3.max(data, d => +d[yColumn])])
             .range([bubbleHeight, 0]);
         const yAxis = svg.append("g")
             .attr("class", "y-axis")
             .call(d3.axisLeft(y));
-    
+
         const size = d3.scaleSqrt()
             .domain([0, d3.max(data, d => +d[sizeColumn])])
             .range([0, 50]);
-    
+
         const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-    
+
         const nodes = data.map(d => ({
             ...d,
             xPos: x(d[xColumn]),
             yPos: y(d[yColumn]),
             radius: size(+d[sizeColumn])
         }));
-    
+
         const node = svg.selectAll("g.node")
             .data(nodes, d => d.id);
-    
+
         const nodeEnter = node.enter().append("g")
             .attr("class", "node")
             .attr("transform", d => `translate(${d.xPos},${d.yPos})`)
@@ -166,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 displayPlayerProfile(d, data); // Use the displayPlayerProfile function from profile.js
                 document.getElementById('player-info').classList.add('show');
             });
-    
+
         nodeEnter.append("circle")
             .attr("r", 0)
             .attr("fill", d => colorScale(d.league_name))
@@ -175,46 +186,54 @@ document.addEventListener("DOMContentLoaded", function() {
             .transition()
             .duration(1000)
             .attr("r", d => d.radius);
-    
-        nodeEnter.append("image")
-            .attr("xlink:href", d => d.player_face_url || "../../resources/img/no-pic.png")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", 0)
-            .attr("height", 0)
-            .transition()
-            .duration(1000)
-            .attr("x", d => -d.radius)
-            .attr("y", d => -d.radius)
-            .attr("width", d => d.radius * 2)
-            .attr("height", d => d.radius * 2)
-            .attr("clip-path", "circle()");
-    
+
+        nodeEnter.each(function(d) {
+            validateImageUrl(d.player_face_url, function(validatedUrl) {
+                d3.select(this).append("image")
+                    .attr("xlink:href", validatedUrl)
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("width", 0)
+                    .attr("height", 0)
+                    .transition()
+                    .duration(1000)
+                    .attr("x", -d.radius)
+                    .attr("y", -d.radius)
+                    .attr("width", d.radius * 2)
+                    .attr("height", d.radius * 2)
+                    .attr("clip-path", "circle()");
+            }.bind(this));
+        });
+
         const nodeUpdate = node.merge(nodeEnter);
-    
+
         nodeUpdate.transition()
             .duration(1000)
             .attr("transform", d => `translate(${x(d[xColumn])},${y(d[yColumn])})`);
-    
+
         nodeUpdate.select("circle")
             .transition()
             .duration(1000)
             .attr("r", d => d.radius);
-    
-        nodeUpdate.select("image")
-            .transition()
-            .duration(1000)
-            .attr("x", d => -d.radius)
-            .attr("y", d => -d.radius)
-            .attr("width", d => d.radius * 2)
-            .attr("height", d => d.radius * 2);
-    
+
+        nodeUpdate.each(function(d) {
+            validateImageUrl(d.player_face_url, function(validatedUrl) {
+                d3.select(this).select("image")
+                    .transition()
+                    .duration(1000)
+                    .attr("x", -d.radius)
+                    .attr("y", -d.radius)
+                    .attr("width", d.radius * 2)
+                    .attr("height", d.radius * 2)
+                    .attr("xlink:href", validatedUrl);
+            }.bind(this));
+        });
+
         node.exit().transition()
             .duration(1000)
             .attr("r", 0)
             .remove();
     }
-    
 
     function updateBubbleChart(data, xColumn, yColumn, sizeColumn) {
         const svg = d3.select("#bubble-chart").select("svg");
@@ -262,19 +281,23 @@ document.addEventListener("DOMContentLoaded", function() {
             .duration(1000)
             .attr("r", d => d.radius);
 
-        nodeEnter.append("image")
-            .attr("xlink:href", d => d.player_face_url || "../../resources/img/no-pic.png")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", 0)
-            .attr("height", 0)
-            .transition()
-            .duration(1000)
-            .attr("x", d => -d.radius)
-            .attr("y", d => -d.radius)
-            .attr("width", d => d.radius * 2)
-            .attr("height", d => d.radius * 2)
-            .attr("clip-path", "circle()");
+        nodeEnter.each(function(d) {
+            validateImageUrl(d.player_face_url, function(validatedUrl) {
+                d3.select(this).append("image")
+                    .attr("xlink:href", validatedUrl)
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("width", 0)
+                    .attr("height", 0)
+                    .transition()
+                    .duration(1000)
+                    .attr("x", -d.radius)
+                    .attr("y", -d.radius)
+                    .attr("width", d.radius * 2)
+                    .attr("height", d.radius * 2)
+                    .attr("clip-path", "circle()");
+            }.bind(this));
+        });
 
         const nodeUpdate = node.merge(nodeEnter);
 
@@ -287,13 +310,18 @@ document.addEventListener("DOMContentLoaded", function() {
             .duration(1000)
             .attr("r", d => d.radius);
 
-        nodeUpdate.select("image")
-            .transition()
-            .duration(1000)
-            .attr("x", d => -d.radius)
-            .attr("y", d => -d.radius)
-            .attr("width", d => d.radius * 2)
-            .attr("height", d => d.radius * 2);
+        nodeUpdate.each(function(d) {
+            validateImageUrl(d.player_face_url, function(validatedUrl) {
+                d3.select(this).select("image")
+                    .transition()
+                    .duration(1000)
+                    .attr("x", -d.radius)
+                    .attr("y", -d.radius)
+                    .attr("width", d.radius * 2)
+                    .attr("height", d.radius * 2)
+                    .attr("xlink:href", validatedUrl);
+            }.bind(this));
+        });
 
         node.exit().transition()
             .duration(1000)
@@ -303,7 +331,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function createHistogram(data, column, selectedPlayer = null) {
         const svg = createHistogramSvg(histogramWidth, histogramHeight);
-    
+
         const x = d3.scaleLinear()
             .domain([0, d3.max(data, d => +d[column])])
             .range([0, histogramWidth]);
@@ -311,23 +339,23 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("class", "x-axis")
             .attr("transform", `translate(0,${histogramHeight})`)
             .call(d3.axisBottom(x));
-    
+
         const histogram = d3.histogram()
             .value(d => d[column])
             .domain(x.domain())
             .thresholds(x.ticks(20));
-    
+
         const bins = histogram(data);
-    
+
         const y = d3.scaleLinear()
             .domain([0, d3.max(bins, d => d.length)])
             .range([histogramHeight, 0]);
         const yAxis = svg.append("g")
             .attr("class", "y-axis")
             .call(d3.axisLeft(y));
-    
+
         const g = svg.append("g");
-    
+
         // Draw bars for histogram
         const bars = g.selectAll('.bar')
             .data(bins)
@@ -342,7 +370,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .duration(1000)
             .attr('y', d => y(d.length))
             .attr('height', d => histogramHeight - y(d.length));
-    
+
         // Highlight the current player's bar
         if (selectedPlayer) {
             const playerValue = +selectedPlayer[column];
@@ -360,13 +388,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 });
             });
         }
-    } 
-    
-    
+    }
 
     function updateHistogram(data, column, selectedPlayer = null) {
         const svg = d3.select("#histogram-chart").select("svg");
-    
+
         const x = d3.scaleLinear()
             .domain([0, d3.max(data, d => +d[column])])
             .range([0, histogramWidth]);
@@ -374,14 +400,14 @@ document.addEventListener("DOMContentLoaded", function() {
             .transition()
             .duration(1000)
             .call(d3.axisBottom(x));
-    
+
         const histogram = d3.histogram()
             .value(d => d[column])
             .domain(x.domain())
             .thresholds(x.ticks(20));
-    
+
         const bins = histogram(data);
-    
+
         const y = d3.scaleLinear()
             .domain([0, d3.max(bins, d => d.length)])
             .range([histogramHeight, 0]);
@@ -389,13 +415,13 @@ document.addEventListener("DOMContentLoaded", function() {
             .transition()
             .duration(1000)
             .call(d3.axisLeft(y));
-    
+
         const g = svg.select("g");
-    
+
         // Remove existing bars and highlights
         g.selectAll('.bar').remove();
         g.selectAll('.highlight-bar').remove();
-    
+
         // Draw bars for histogram
         const bars = g.selectAll('.bar')
             .data(bins)
@@ -410,7 +436,7 @@ document.addEventListener("DOMContentLoaded", function() {
             .duration(1000)
             .attr('y', d => y(d.length))
             .attr('height', d => histogramHeight - y(d.length));
-    
+
         // Highlight the current player's bar
         if (selectedPlayer) {
             const playerValue = +selectedPlayer[column];
@@ -430,46 +456,84 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    function createHeightGraph(data) {
-        const heightGraph = document.getElementById("height-graph");
-        heightGraph.innerHTML = ''; // Clear existing content
+    function createHeightGraph(data, selectedPlayerHeight = null) {
+        const heightGraph = d3.select("#height-graph");
+        heightGraph.selectAll("*").remove(); // Clear existing content
 
         const heights = data.map(d => +d.height_cm).sort((a, b) => a - b);
         const percentiles = [0, 0.25, 0.5, 0.75, 1].map(p => heights[Math.floor(p * (heights.length - 1))]);
-        const scaleFactor = 1.2; // Increased scale factor to exaggerate height differences
+        const scaleFactor = 2.5; // Adjust scale factor to control the height of images
 
-        percentiles.forEach((height, index) => {
-            const img = document.createElement("img");
-            img.src = "../../resources/img/monigote.png"; // Path to your image
-            img.style.height = `${height * scaleFactor}px`; // Scale image height according to player height
-            img.style.width = "auto"; // Maintain aspect ratio
+        const histogramHeight = 400; // Assuming the histogram height is 400px
+        const svgHeight = histogramHeight; // SVG height matches histogram height
+        const svgWidth = (percentiles.length + (selectedPlayerHeight ? 1 : 0)) * 200; // Adjust width based on the number of images
 
-            const label = document.createElement("div");
-            label.textContent = `${height} cm`;
-            label.style.textAlign = "center";
-            label.style.color = "white";
+        const svg = heightGraph.append("svg")
+            .attr("width", svgWidth)
+            .attr("height", svgHeight)
+            .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
+            .style("display", "block");
 
-            const container = document.createElement("div");
-            container.style.display = "flex";
-            container.style.flexDirection = "column";
-            container.style.alignItems = "center";
-            container.style.margin = "-40px"; // Reduced margin to bring items closer
+        const container = svg.selectAll("g")
+            .data(percentiles)
+            .enter().append("g")
+            .attr("transform", (d, i) => `translate(${i * 120},0)`);
 
-            container.appendChild(img);
-            container.appendChild(label);
-            heightGraph.appendChild(container);
+        container.append("image")
+            .attr("xlink:href", "../../resources/img/monigote.png")
+            .attr("height", d => `${d * scaleFactor}px`)
+            .attr("width", d => `${d * scaleFactor / 2}px`)
+            .attr("x", d => -d * scaleFactor / 4) // Center the image
+            .attr("y", d => svgHeight - d * scaleFactor - 20); // Align bottom and add margin for text
+
+        container.append("text")
+            .attr("x", 0)
+            .attr("y", d => svgHeight - 5) // Position the text at the bottom
+            .attr("text-anchor", "middle")
+            .attr("fill", "white")
+            .text(d => `${d} cm`);
+
+        if (selectedPlayerHeight !== null) {
+            // Slide existing images to the left
+            svg.selectAll("g")
+                .transition()
+                .duration(1000)
+                .attr("transform", (d, i) => `translate(${i * 120 - 60},0)`); // Move left by 60 units
+
+            const selectedContainer = svg.append("g")
+                .attr("transform", `translate(${percentiles.length * 120},0)`);
+
+            selectedContainer.append("image")
+                .attr("xlink:href", "../../resources/img/monigote.png")
+                .attr("height", `${selectedPlayerHeight * scaleFactor}px`)
+                .attr("width", `${selectedPlayerHeight * scaleFactor / 2}px`)
+                .attr("x", -selectedPlayerHeight * scaleFactor / 4) // Center the image
+                .attr("y", svgHeight - selectedPlayerHeight * scaleFactor - 20); // Align bottom and add margin for text
+
+            selectedContainer.append("text")
+                .attr("x", 0)
+                .attr("y", svgHeight - 5) // Position the text at the bottom
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .text(`${selectedPlayerHeight} cm`);
+        }
+    }
+
+    function filterOutliers(data, columns) {
+        const filteredData = data.filter(d => {
+            for (let column of columns) {
+                const values = data.map(d => +d[column]);
+                const mean = d3.mean(values);
+                const deviation = d3.deviation(values);
+                const zScore = (d[column] - mean) / deviation;
+                if (Math.abs(zScore) > 3) {
+                    return false;
+                }
+            }
+            return true;
         });
-    }
-    function validateImageUrl(url, callback) {
-        const img = new Image();
-        img.onload = function() {
-            callback(url);
-        };
-        img.onerror = function() {
-            callback("../../resources/img/no-pic.png");
-        };
-        img.src = url;
-    }
+        return filteredData;
+    }    
 
     // Close the sliding panel
     document.querySelector('.close-btn').addEventListener('click', function() {
@@ -489,15 +553,14 @@ document.addEventListener("DOMContentLoaded", function() {
         event.stopPropagation();
     });
 
-
     function initializeSearchBox(data) {
         const playerSearchInput = document.getElementById('player-search');
         const searchResultsContainer = document.getElementById('search-results');
-    
+
         playerSearchInput.addEventListener('input', function() {
             const query = playerSearchInput.value.toLowerCase();
             searchResultsContainer.innerHTML = '';
-    
+
             if (query.length > 0) {
                 const filteredPlayers = data.filter(player => player.short_name.toLowerCase().includes(query));
                 filteredPlayers.forEach(player => {
@@ -508,7 +571,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     resultItem.addEventListener('click', function() {
                         playerSearchInput.value = '';
                         searchResultsContainer.innerHTML = '';
-    
+
                         // Display selected player tag
                         const playerTag = document.createElement('div');
                         playerTag.classList.add('player-tag');
@@ -516,41 +579,34 @@ document.addEventListener("DOMContentLoaded", function() {
                         const selectedPlayerContainer = document.getElementById('selected-player');
                         selectedPlayerContainer.innerHTML = ''; // Clear previous player tags
                         selectedPlayerContainer.appendChild(playerTag);
-    
-                        console.log("Player tag created: ", playerTag);
-    
+
                         // Add event listener to the player tag to display profile
                         playerTag.addEventListener('click', function(event) {
                             if (!event.target.classList.contains('remove-tag')) {
-                                console.log("Displaying profile for player: ", player);
                                 displayPlayerProfile(player, data);
                                 document.getElementById('player-info').classList.add('show');
-                                console.log("Player info panel should be visible");
-                            } else {
-                                console.log("Clicked on remove tag");
                             }
                         });
-    
+
                         // Remove player tag on click of 'x'
                         playerTag.querySelector('.remove-tag').addEventListener('click', function() {
-                            console.log("Removing player tag");
                             selectedPlayerContainer.innerHTML = '';
                             activePlayer = null; // Clear the active player
                             updateBubbleChart(data, currentX, currentY, currentSize);
                             updateHistogram(data, currentHistogram, null);
+                            createHeightGraph(data);
                         });
-    
+
                         // Set the active player and update the histogram
                         activePlayer = player;
                         updateHistogram(data, currentHistogram, activePlayer);
+
+                        // Add the selected player to the height graph
+                        createHeightGraph(data, +player.height_cm);
                     });
                     searchResultsContainer.appendChild(resultItem);
                 });
             }
         });
     }
-    
-    
-    
-    
 });
