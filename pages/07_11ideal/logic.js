@@ -51,11 +51,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 d.position = "CB2";
             } else if (d.player_positions.includes("RB") && !formation.find(p => p.position === "RB").player) {
                 d.position = "RB";
-            } else if (d.player_positions.includes("LM") && !formation.find(p => p.position === "LM").player) {
+            } else if (d.player_positions.includes("CM") && !formation.find(p => p.position === "LM").player) {
                 d.position = "LM";
             } else if (d.player_positions.includes("CM") && !formation.find(p => p.position === "CM").player) {
                 d.position = "CM";
-            } else if (d.player_positions.includes("RM") && !formation.find(p => p.position === "RM").player) {
+            } else if (d.player_positions.includes("CM") && !formation.find(p => p.position === "RM").player) {
                 d.position = "RM";
             } else if (d.player_positions.includes("LW") && !formation.find(p => p.position === "LW").player) {
                 d.position = "LW";
